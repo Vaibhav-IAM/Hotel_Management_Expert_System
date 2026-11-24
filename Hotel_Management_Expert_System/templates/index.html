@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AetherStay AI — Hotel Management Expert System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">🏨</div>
+                <div>
+                    <h1>AetherStay AI</h1>
+                    <span>Hotel Expert System v2.6</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-btn active" onclick="switchTab('dashboard', this)">📊 Live Operations & Rooms</button>
+                <button class="nav-btn" onclick="switchTab('expert-booking', this)">🧠 AI Reservation & Yield Engine</button>
+                <button class="nav-btn" onclick="switchTab('maintenance', this)">🔧 Maintenance Diagnostic Expert</button>
+                <button class="nav-btn" onclick="switchTab('knowledge-base', this)">📚 Knowledge Base & Audit Log</button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="engine-badge">
+                    <span class="pulse-dot"></span>
+                    Forward-Chaining Engine Active
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Top KPI Strip -->
+            <header class="kpi-grid">
+                <div class="kpi-card">
+                    <span class="kpi-label">Occupancy Rate</span>
+                    <h2 id="kpi-occupancy">0%</h2>
+                    <small id="kpi-occ-detail">0 / 0 Rooms Occupied</small>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Available Inventory</span>
+                    <h2 id="kpi-available">0</h2>
+                    <small id="kpi-avail-detail">0 Suites • 0 Deluxe</small>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Active Stay Revenue</span>
+                    <h2 id="kpi-revenue">$0</h2>
+                    <small>Checked-in portfolio</small>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-label">Housekeeping / Alerts</span>
+                    <h2 id="kpi-dirty">0 Dirty</h2>
+                    <small id="kpi-maint">0 in Maintenance</small>
+                </div>
+            </header>
+
+            <!-- TAB 1: DASHBOARD & ROOM MATRIX -->
+            <section id="tab-dashboard" class="tab-panel active">
+                <div class="section-header">
+                    <h3>Real-Time Room Matrix & Housekeeping Control</h3>
+                    <button class="btn-secondary" onclick="loadState()">↻ Refresh State</button>
+                </div>
+                <div id="room-grid" class="room-grid"></div>
+
+                <div class="section-header" style="margin-top: 28px;">
+                    <h3>Active & Recent Reservations</h3>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ref</th>
+                                <th>Guest</th>
+                                <th>Tier</th>
+                                <th>Room</th>
+                                <th>Nights</th>
+                                <th>Rate/Night</th>
+                                <th>Total</th>
+                                <th>Expert System Rules Applied</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 2: AI RESERVATION & DYNAMIC YIELD EXPERT -->
+            <section id="tab-expert-booking" class="tab-panel">
+                <div class="split-layout">
+                    <div class="card">
+                        <h3>Guest & Stay Fact Input</h3>
+                        <p class="subtitle">Enter guest parameters to trigger the Forward-Chaining Inference Engine.</p>
+                        <form id="consult-form" onsubmit="runExpertConsult(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Guest Full Name</label>
+                                    <input type="text" id="g-name" value="Vikramaditya Rao" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Guest Email</label>
+                                    <input type="email" id="g-email" value="vikram.rao@example.com">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Loyalty Tier</label>
+                                    <select id="g-tier">
+                                        <option value="Standard">Standard</option>
+                                        <option value="Silver">Silver</option>
+                                        <option value="Gold">Gold</option>
+                                        <option value="Platinum" selected>Platinum</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Travel Purpose</label>
+                                    <select id="g-purpose">
+                                        <option value="Leisure">Leisure</option>
+                                        <option value="Business" selected>Business</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Requested Room Category</label>
+                                    <select id="g-room">
+                                        <option value="Standard Room">Standard Room ($120 base)</option>
+                                        <option value="Deluxe King" selected>Deluxe King ($180 base)</option>
+                                        <option value="Executive Suite">Executive Suite ($320 base)</option>
+                                        <option value="Presidential Suite">Presidential Suite ($600 base)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Special Requirements</label>
+                                    <select id="g-needs">
+                                        <option value="None">None</option>
+                                        <option value="Wheelchair Access">Wheelchair Access</option>
+                                        <option value="Senior Citizen">Senior Citizen</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row three-col">
+                                <div class="form-group">
+                                    <label>Adults</label>
+                                    <input type="number" id="g-adults" value="2" min="1" max="6">
+                                </div>
+                                <div class="form-group">
+                                    <label>Children</label>
+                                    <input type="number" id="g-children" value="0" min="0" max="4">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nights</label>
+                                    <input type="number" id="g-nights" value="5" min="1" max="30">
+                                </div>
+                            </div>
+
+                            <div class="checkbox-row">
+                                <label><input type="checkbox" id="g-early"> Request Early Check-In</label>
+                                <label><input type="checkbox" id="g-eco" checked> Eco-Green Linen Program</label>
+                            </div>
+
+                            <button type="submit" class="btn-primary full-width">⚡ Run Expert Inference Engine</button>
+                        </form>
+                    </div>
+
+                    <div class="card inference-output">
+                        <h3>Inference Engine Decision & Explanation</h3>
+                        <div id="inference-placeholder" class="empty-state">
+                            Submit guest parameters on the left to evaluate production rules, dynamic pricing multipliers, and upgrade eligibility.
+                        </div>
+                        <div id="inference-result" style="display:none;">
+                            <div class="decision-banner">
+                                <div>
+                                    <span class="tag">Recommended Allocation</span>
+                                    <h4 id="res-room">—</h4>
+                                    <p id="res-amenity" class="amenity-text">—</p>
+                                </div>
+                                <div class="price-box">
+                                    <span class="tag">Dynamic Rate</span>
+                                    <h4 id="res-rate">$0/night</h4>
+                                    <small id="res-total">Total: $0</small>
+                                </div>
+                            </div>
+
+                            <div id="res-alerts" class="alert-stack"></div>
+
+                            <h4>Fired Production Rules (Conflict-Resolved by Priority)</h4>
+                            <div id="fired-rules-list" class="rules-list"></div>
+
+                            <h4>Step-by-Step Reasoning Trace (Explanation Facility)</h4>
+                            <pre id="reasoning-trace" class="trace-box"></pre>
+
+                            <button class="btn-success full-width" onclick="confirmExpertBooking()">✅ Confirm & Commit Reservation to PMS</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: MAINTENANCE DIAGNOSTIC EXPERT -->
+            <section id="tab-maintenance" class="tab-panel">
+                <div class="split-layout">
+                    <div class="card">
+                        <h3>Facility Fault Symptom Input</h3>
+                        <p class="subtitle">Select facility subsystem and observed symptom for root-cause inference & SLA triage.</p>
+                        <form onsubmit="runMaintenanceDiagnosis(event)">
+                            <div class="form-group">
+                                <label>Affected Room Number</label>
+                                <select id="m-room"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Engineering Subsystem</label>
+                                <select id="m-system" onchange="updateSymptoms()">
+                                    <option value="HVAC">HVAC & Climate Control</option>
+                                    <option value="Plumbing">Plumbing & Water Supply</option>
+                                    <option value="Electrical / Smart Lock">Electrical & RFID Smart Lock</option>
+                                    <option value="IT / Wi-Fi">IT Network & In-Room Wi-Fi</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Observed Symptom</label>
+                                <select id="m-symptom"></select>
+                            </div>
+                            <div class="checkbox-row">
+                                <label><input type="checkbox" id="m-create-ticket" checked> Automatically Dispatch Work Order & Update Room Status</label>
+                            </div>
+                            <button type="submit" class="btn-primary full-width">🔍 Diagnose Root Cause & Dispatch</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3>Diagnostic Expert Output</h3>
+                        <div id="diag-result" class="empty-state">
+                            Select a room and symptom to run diagnostic rules.
+                        </div>
+
+                        <h4 style="margin-top:24px;">Active Maintenance Work Orders</h4>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Ticket</th>
+                                        <th>Room</th>
+                                        <th>Diagnosis</th>
+                                        <th>SLA</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tickets-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: KNOWLEDGE BASE & AUDIT LOG -->
+            <section id="tab-knowledge-base" class="tab-panel">
+                <div class="section-header">
+                    <h3>Production Rule Knowledge Base (IF-THEN Rules)</h3>
+                </div>
+                <div id="kb-rules-grid" class="kb-grid"></div>
+
+                <div class="section-header" style="margin-top:28px;">
+                    <h3>Expert System Inference Audit Log</h3>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Inference Domain</th>
+                                <th>Input Facts Summary</th>
+                                <th>Rules Triggered</th>
+                                <th>System Output</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let currentState = null;
+        let lastInferenceResult = null;
+
+        const symptomMap = {
+            "HVAC": ["No Cooling / Warm Air Blowing", "Water Leak from Ceiling Vent"],
+            "Plumbing": ["No Hot Water in Shower", "Active Pipe Leak / Overflow"],
+            "Electrical / Smart Lock": ["Smart Lock / Keycard Not Opening", "Room Power Outage"],
+            "IT / Wi-Fi": ["No Internet / Captive Portal Timeout"]
+        };
+
+        function updateSymptoms() {
+            const sys = document.getElementById("m-system").value;
+            const sel = document.getElementById("m-symptom");
+            sel.innerHTML = symptomMap[sys].map(s => `<option value="${s}">${s}</option>`).join("");
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+            document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+            document.getElementById("tab-" + tabId).classList.add("active");
+            btn.classList.add("active");
+        }
+
+        async function loadState() {
+            const res = await fetch("/api/state");
+            currentState = await res.json();
+            const s = currentState.stats;
+
+            document.getElementById("kpi-occupancy").textContent = s.occupancy_rate + "%";
+            document.getElementById("kpi-occ-detail").textContent = `${s.occupied_rooms} / ${s.total_rooms} Rooms Occupied`;
+            document.getElementById("kpi-available").textContent = s.available_rooms;
+            document.getElementById("kpi-avail-detail").textContent = `${s.avail_suites} Suites • ${s.avail_deluxe} Deluxe`;
+            document.getElementById("kpi-revenue").textContent = "$" + s.active_revenue.toLocaleString();
+            document.getElementById("kpi-dirty").textContent = `${s.dirty_rooms} Dirty`;
+            document.getElementById("kpi-maint").textContent = `${s.maintenance_rooms} in Maintenance`;
+
+            // Render Room Grid
+            const roomGrid = document.getElementById("room-grid");
+            roomGrid.innerHTML = currentState.rooms.map(r => `
+                <div class="room-card status-${r.status.toLowerCase()}">
+                    <div class="room-top">
+                        <strong>Room ${r.room_number}</strong>
+                        <span class="pill ${r.status.toLowerCase()}">${r.status}</span>
+                    </div>
+                    <div class="room-type">${r.room_type}</div>
+                    <div class="room-meta">Floor ${r.floor} • $${r.base_rate}/night</div>
+                    <div class="room-features">${r.features}</div>
+                    <div class="room-footer">
+                        <span class="hk-badge hk-${r.housekeeping_status.toLowerCase()}">HK: ${r.housekeeping_status}</span>
+                        ${r.status === 'Available' ? `<button class="btn-mini" onclick="toggleHK('${r.room_number}')">Toggle Clean/Dirty</button>` : ''}
+                    </div>
+                </div>
+            `).join("");
+
+            // Populate Maintenance Room Select
+            const mRoom = document.getElementById("m-room");
+            mRoom.innerHTML = currentState.rooms.map(r => `<option value="${r.room_number}">Room ${r.room_number} (${r.room_type} - ${r.status})</option>`).join("");
+
+            // Render Bookings
+            const bTbody = document.getElementById("bookings-tbody");
+            bTbody.innerHTML = currentState.bookings.map(b => `
+                <tr>
+                    <td><strong>${b.booking_ref}</strong></td>
+                    <td>${b.guest_name}</td>
+                    <td><span class="tier-badge tier-${b.loyalty_tier.toLowerCase()}">${b.loyalty_tier}</span></td>
+                    <td>Room ${b.room_number} (${b.room_type})</td>
+                    <td>${b.nights}</td>
+                    <td>$${b.nightly_rate}</td>
+                    <td><strong>$${b.total_amount}</strong></td>
+                    <td class="small-cell">${b.ai_notes}</td>
+                    <td><span class="pill ${b.status === 'Checked-In' ? 'occupied' : 'available'}">${b.status}</span></td>
+                    <td>
+                        ${b.status === 'Checked-In' ? `<button class="btn-mini" onclick="checkoutBooking(${b.id})">Check Out</button>` : '—'}
+                    </td>
+                </tr>
+            `).join("");
+
+            // Render Tickets
+            const tTbody = document.getElementById("tickets-tbody");
+            tTbody.innerHTML = currentState.tickets.length ? currentState.tickets.map(t => `
+                <tr>
+                    <td><strong>${t.ticket_ref}</strong></td>
+                    <td>Room ${t.room_number}</td>
+                    <td>${t.diagnosis}</td>
+                    <td>${t.sla_minutes} mins</td>
+                    <td><span class="pill ${t.status === 'Open' ? 'maintenance' : 'available'}">${t.status}</span></td>
+                    <td>${t.status === 'Open' ? `<button class="btn-mini" onclick="resolveTicket(${t.id})">Resolve</button>` : 'Done'}</td>
+                </tr>
+            `).join("") : `<tr><td colspan="6" style="text-align:center;color:#888;">No maintenance tickets logged.</td></tr>`;
+
+            // Render Logs
+            const lTbody = document.getElementById("logs-tbody");
+            lTbody.innerHTML = currentState.logs.map(l => `
+                <tr>
+                    <td class="small-cell">${l.created_at}</td>
+                    <td><strong>${l.action_type}</strong></td>
+                    <td class="small-cell">${l.input_summary}</td>
+                    <td><code>${l.rules_fired}</code></td>
+                    <td class="small-cell">${l.recommendation}</td>
+                </tr>
+            `).join("");
+        }
+
+        async function loadRules() {
+            const res = await fetch("/api/rules");
+            const data = await res.json();
+            document.getElementById("kb-rules-grid").innerHTML = data.rules.map(r => `
+                <div class="kb-card">
+                    <div class="kb-top">
+                        <span class="rule-id">${r.rule_id}</span>
+                        <span class="rule-cat">${r.category}</span>
+                        <span class="rule-prio">Priority: ${r.priority}</span>
+                    </div>
+                    <h4>${r.name}</h4>
+                    <p>${r.explanation}</p>
+                </div>
+            `).join("");
+        }
+
+        async function runExpertConsult(e) {
+            e.preventDefault();
+            const payload = {
+                guest_name: document.getElementById("g-name").value,
+                guest_email: document.getElementById("g-email").value,
+                loyalty_tier: document.getElementById("g-tier").value,
+                purpose: document.getElementById("g-purpose").value,
+                requested_room: document.getElementById("g-room").value,
+                special_needs: document.getElementById("g-needs").value,
+                adults: document.getElementById("g-adults").value,
+                children: document.getElementById("g-children").value,
+                nights: document.getElementById("g-nights").value,
+                early_checkin: document.getElementById("g-early").checked,
+                eco_preference: document.getElementById("g-eco").checked
+            };
+
+            const res = await fetch("/api/expert/consult", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            lastInferenceResult = await res.json();
+            const wm = lastInferenceResult.working_memory;
+
+            document.getElementById("inference-placeholder").style.display = "none";
+            document.getElementById("inference-result").style.display = "block";
+
+            document.getElementById("res-room").textContent = wm.final_room_assigned;
+            document.getElementById("res-amenity").textContent = wm.welcome_amenity || "Standard Hospitality Package";
+            document.getElementById("res-rate").textContent = `$${wm.final_nightly_rate} / night`;
+            document.getElementById("res-total").textContent = `Total (${wm.nights} nights): $${wm.total_stay_estimate} (Base: $${wm.base_nightly_rate})`;
+
+            const alerts = [];
+            if (wm.accessibility_flag) alerts.push(`♿ ${wm.accessibility_flag}`);
+            if (wm.housekeeping_priority) alerts.push(`🧹 Housekeeping: ${wm.housekeeping_priority}`);
+            if (wm.extended_stay_bonus) alerts.push(`🎁 Bonus: ${wm.extended_stay_bonus}`);
+            if (wm.inventory_alert) alerts.push(`⚠️ ${wm.inventory_alert}`);
+
+            document.getElementById("res-alerts").innerHTML = alerts.map(a => `<div class="alert-item">${a}</div>`).join("");
+
+            document.getElementById("fired-rules-list").innerHTML = lastInferenceResult.fired_rules.map(r => `
+                <div class="fired-rule-item">
+                    <div><strong>[${r.rule_id}] ${r.name}</strong> <span class="cf-badge">CF: ${r.certainty_factor}%</span></div>
+                    <small>${r.explanation}</small>
+                </div>
+            `).join("") || "<p>No special override rules fired; standard base policy applied.</p>";
+
+            document.getElementById("reasoning-trace").textContent = lastInferenceResult.reasoning_trace.join("\n") || "Default base rate calculation executed.";
+            loadState();
+        }
+
+        async function confirmExpertBooking() {
+            if (!lastInferenceResult) return;
+            const wm = lastInferenceResult.working_memory;
+            const firedIds = lastInferenceResult.fired_rules.map(r => r.rule_id).join(", ") || "Base Policy";
+
+            const res = await fetch("/api/bookings/create", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    guest_name: wm.guest_name,
+                    guest_email: document.getElementById("g-email").value,
+                    loyalty_tier: wm.loyalty_tier,
+                    purpose: wm.purpose,
+                    adults: wm.adults,
+                    children: wm.children,
+                    nights: wm.nights,
+                    room_type: wm.final_room_assigned,
+                    nightly_rate: wm.final_nightly_rate,
+                    ai_notes: `Rules: ${firedIds}`
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`Reservation Confirmed! Ref: ${data.booking_ref} | Assigned Room: ${data.room_number}`);
+                loadState();
+            } else {
+                alert("Error: " + data.error);
+            }
+        }
+
+        async function checkoutBooking(id) {
+            await fetch(`/api/bookings/checkout/${id}`, {method: "POST"});
+            loadState();
+        }
+
+        async function toggleHK(roomNum) {
+            await fetch(`/api/rooms/housekeeping/${roomNum}`, {method: "POST"});
+            loadState();
+        }
+
+        async function runMaintenanceDiagnosis(e) {
+            e.preventDefault();
+            const payload = {
+                room_number: document.getElementById("m-room").value,
+                system: document.getElementById("m-system").value,
+                symptom: document.getElementById("m-symptom").value,
+                create_ticket: document.getElementById("m-create-ticket").checked
+            };
+
+            const res = await fetch("/api/maintenance/diagnose", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            const d = data.diagnosis;
+
+            const box = document.getElementById("diag-result");
+            box.className = "diag-box";
+            box.innerHTML = `
+                <div class="diag-header">
+                    <strong>${d.fault_classification}</strong>
+                    <span class="cf-badge">Confidence: ${d.confidence}% • SLA: ${d.sla_minutes} mins</span>
+                </div>
+                <p><strong>Root Cause Hypothesis:</strong> ${d.root_cause_hypothesis}</p>
+                <p><strong>Guest Relocation Required:</strong> ${d.guest_relocation_required ? '🚨 YES (Immediate Room Move)' : 'No'}</p>
+                <div class="action-steps">
+                    <strong>Recommended Engineering Action Plan:</strong>
+                    <ul>${d.action_plan.map(step => `<li>${step}</li>`).join("")}</ul>
+                </div>
+            `;
+            loadState();
+        }
+
+        async function resolveTicket(id) {
+            await fetch(`/api/maintenance/resolve/${id}`, {method: "POST"});
+            loadState();
+        }
+
+        // Init
+        updateSymptoms();
+        loadState();
+        loadRules();
+    </script>
+</body>
+</html>
